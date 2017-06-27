@@ -4,7 +4,7 @@ from trac.env import IEnvironmentSetupParticipant
 from trac.db.api import DatabaseManager
 
 # Database version identifier for upgrades.
-db_version = 3
+db_version = 4
 
 # Database schema
 schema = {
@@ -13,10 +13,11 @@ schema = {
         Column('version', type='int'),
         Column('text'),
         Column('path'),
-        Column('revision', type='int'),
+        Column('revision'),
         Column('line', type='int'),
         Column('author'),
         Column('time', type='int'),
+        Column('repository'),
         Column('type'),
         Index(['path']),
         Index(['author']),
@@ -101,9 +102,18 @@ def upgrade_from_2_to_3(env, db):
             cursor.execute(stmt)
 
 
+def upgrade_from_3_to_4(env, db):
+    # Add the new column "repository"
+    @env.with_transaction()
+    def add_repository_column(db):
+        cursor = db.cursor()
+        cursor.execute('ALTER TABLE code_comments ADD COLUMN repository TEXT')
+        cursor.execute('ALTER TABLE code_comments MODIFY COLUMN revision TEXT')
+
 upgrade_map = {
     2: upgrade_from_1_to_2,
     3: upgrade_from_2_to_3,
+    4: upgrade_from_3_to_4,
 }
 
 

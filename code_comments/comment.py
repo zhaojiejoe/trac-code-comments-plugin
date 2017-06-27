@@ -70,9 +70,9 @@ class Comment:
 
     def href(self):
         if self.is_comment_to_file:
-            href = self.req.href.browser(self.path, rev=self.revision, codecomment=self.id)
+            href = self.req.href.browser(self.repository, self.path, rev=self.revision, codecomment=self.id)
         elif self.is_comment_to_changeset:
-            href = self.req.href.changeset(self.revision, codecomment=self.id)
+            href = self.req.href.changeset(self.revision, self.repository, codecomment=self.id)
         elif self.is_comment_to_attachment:
             href = self.req.href('/attachment/ticket/%d/%s' % (self.attachment_ticket, self.attachment_filename), codecomment=self.id)
         if self.line and not self.is_comment_to_changeset:
@@ -96,7 +96,7 @@ class Comment:
 
     def changeset_link_text(self):
         if 0 != self.line:
-            return 'Changeset @%d#L%d (in %s)' % ( self.revision, self.line, self.path )
+            return 'Changeset @%s#L%d (in %s)' % ( self.revision, self.line, self.path )
         else:
             return 'Changeset @%s' % self.revision
 
@@ -159,6 +159,8 @@ class CommentJSONEncoder(json.JSONEncoder):
             for_json = dict([(name, getattr(o, name)) for name in o.__dict__ if isinstance(getattr(o, name), (basestring, int, list, dict))])
             for_json['formatted_date'] = o.formatted_date()
             for_json['permalink'] = o.href()
+            for_json['id'] = o.id
+            for_json['line'] = o.line
             return for_json
         else:
             return json.JSONEncoder.default(self, o)
